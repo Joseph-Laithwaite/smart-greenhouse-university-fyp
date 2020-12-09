@@ -1,0 +1,400 @@
+# sql_squeeries_and_insertions.py
+
+import mysql.connector
+# Database connection
+
+config = {
+   'user': 'joseph',
+   'password': 'passcode',
+   'host': 'localhost',
+   'database': 'SmartGreenhouse_2',
+   'raise_on_warnings': True,
+}
+
+
+def add_sensor_data(current_time, sensor_id, sensor_reading):
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+   add_sensor_reading = (
+       """
+       INSERT INTO SmartGreenhouse_2.SensorReadings (TimeStamp, InstalledSensors_SensorID, SensorValue)
+       VALUES(%(TimeStamp)s, %(InstalledSensors_SensorID)s, %(SensorValue)s)
+       """)
+   data_sensor_reading = {
+       'TimeStamp': current_time.strftime("%Y-%m-%d %H:%M:%S"),
+       'InstalledSensors_SensorID': sensor_id,
+       'SensorValue': float(sensor_reading)
+   }
+   crs.execute(add_sensor_reading, data_sensor_reading)
+   cnx.commit()
+   crs.close()
+   cnx.close()
+
+
+def get_led_pins(corrector_id):
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   querry_get_led_pins = (
+       """
+       SELECT
+           RedPin,
+           GreenPin,
+           BluePin
+       FROM
+           LEDCorrector
+       WHERE
+           LEDCorrector.InstalledCorrectors_CorrectorID = '%(CorrectorID)s'
+       """)
+   data_get_led_pins = {
+       'CorrectorID': corrector_id
+   }
+   crs.execute(querry_get_led_pins, data_get_led_pins)
+   for (RedPin, GreenPin, BluePin) in crs:
+       return [RedPin, GreenPin, BluePin]
+   crs.close()
+   cnx.close()
+
+
+def get_desired_rgb_percentages(module_id):
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+   querry_get_rgb_desired_conditions = (
+       """
+       SELECT
+          DLT.DesiredRedPercentage,
+          DLT.DesiredGreenPercentage,
+          DLT.DesiredBluePercentage
+       FROM
+          DesiredConditions DC
+              INNER JOIN
+          DesiredLightType DLT
+              ON
+              DC.CorrectionModule_ModuleID = DLT.DesiredConditions_CorrectionModule_ModuleID
+                 AND
+              DC.ConditionStartTime = DLT.DesiredConditions_ConditionStartTime
+       WHERE
+           DC.CorrectionModule_ModuleID = '%(ModuleID)s'
+               AND
+              (
+                   DC.ConditionEndTime IS NULL
+                   OR DC.ConditionEndTime >= NOW()
+               )
+               AND DC.ConditionStartTime <= NOW()
+     """
+   )
+   data_get_rgb_desired_conditions = {
+       'ModuleID': module_id
+   }
+   crs.execute(querry_get_rgb_desired_conditions, data_get_rgb_desired_conditions)
+   for (DesiredRedPercentage, DesiredGreenPercentage, DesiredBluePercentage) in crs:
+       return [DesiredRedPercentage, DesiredGreenPercentage, DesiredBluePercentage]
+   crs.close()
+   cnx.close()
+
+
+def get_sensor_id_with_module_info(module_id, sensor_type_id):
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   querry_get_sensor_id_with_module_info = (
+       """
+       SELECT
+           I_S.SensorID
+       FROM
+           CorrectionModule_has_InstalledSensors CMIS
+               INNER JOIN
+           InstalledSensors I_S ON CMIS.InstalledSensors_SensorID = I_S.SensorID
+       WHERE
+           I_S.SensorTypes_SensorTypeID = '%(SensorType)s'
+               AND
+           CMIS.CorrectionModule_ModuleID = '%(ModuleID)s'
+       """)
+   data_get_get_sensor_id_with_module_info = {
+       'SensorType': int(sensor_type_id),
+       'ModuleID': int(module_id)
+   }
+
+   crs.execute(querry_get_sensor_id_with_module_info, data_get_get_sensor_id_with_module_info)
+   for (SensorID) in crs:
+       return int(SensorID)
+
+   crs.close()
+   cnx.close()
+
+
+def get_int_sensor_id_with_module_and_sensor_type(module_id, sensor_type_id, internal):
+   print(str(module_id) + " " + str(sensor_type_id))
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   querry_get_sensor_is_with_module_and_sensor_type = (
+       """
+       SELECT
+           I_S.SensorID
+       FROM
+           CorrectionModule_has_InstalledSensors CMIS
+               INNER JOIN
+           InstalledSensors I_S ON CMIS.InstalledSensors_SensorID = I_S.SensorID
+       WHERE
+           I_S.SensorTypes_SensorTypeID = '%(SensorType)s'
+               AND
+           I_S.Internal = '%(Internal)s'
+               AND
+           CMIS.CorrectionModule_ModuleID = '%(ModuleID)s'
+       """)
+   data_get_sensor_id_with_module_and_sensor_type = {
+       'SensorType': int(sensor_type_id),
+       'ModuleID': int(module_id),
+       'Internal': int(internal)
+   }
+
+   crs.execute(querry_get_sensor_is_with_module_and_sensor_type, data_get_sensor_id_with_module_and_sensor_type)
+   for (SensorID) in crs:
+       return SensorID
+   # return cursor.fetchone()
+   crs.close()
+   cnx.close()
+
+
+def get_most_recent_sensor_reading(sensor_id):
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   querry_get_sensor_readings = (
+       """
+       SELECT
+           SR.SensorValue
+       FROM
+           SensorReadings SR
+       WHERE
+           SR.InstalledSensors_SensorID = '%(SensorID)s'
+       ORDER BY
+           SR.TimeStamp DESC
+       LIMIT
+           1
+
+       """)
+   data_get_sensor_readings = {
+       'SensorID': int(sensor_id)
+   }
+   crs.execute(querry_get_sensor_readings, data_get_sensor_readings)
+   for (SensorValue) in crs:
+       return SensorValue
+   crs.close()
+   cnx.close()
+
+
+def get_standard_desired_conditions(module_id):
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   querry_get_standard_desired_conditions = (
+       """SELECT
+              DC.UpperLimit,
+              DC.LowerLimit
+           FROM
+              DesiredConditions DC
+           WHERE
+              DC.CorrectionModule_ModuleID = '%(ModuleID)s'
+              AND
+              (
+                 DC.ConditionEndTime IS NULL
+                 OR DC.ConditionEndTime >= NOW()
+              )
+              AND DC.ConditionStartTime <= NOW()"""
+   )
+   data_get_standard_desired_conditions = {
+       'ModuleID': module_id
+   }
+   crs.execute(querry_get_standard_desired_conditions, data_get_standard_desired_conditions)
+   for (ConditionEndTime, UpperLimit, LowerLimit) in crs:
+       print("ConditionEndTime {}, UpperLimit {}, LowerLimit {}".format(ConditionEndTime, UpperLimit, LowerLimit))
+       return[ConditionEndTime, UpperLimit, LowerLimit]
+   crs.close()
+   cnx.close()
+
+
+def get_corrector_info(module_id, corrector_type_id):
+   querry_get_corrector_info = ("""
+       SELECT
+           IC.CorrectorPin,
+           IC.CorrectorID
+       FROM
+           InstalledCorrectors_has_CorrectionModule ICMC
+               INNER JOIN
+           InstalledCorrectors IC ON ICMC.InstalledCorrectors_CorrectorID = IC.CorrectorID
+       WHERE
+           ICMC.CorrectionModule_ModuleID = '%(ModuleID)s'
+              AND
+          IC.CorrectionTypes_CorrectionTypeID = '%(CorrectionTypeID)s'
+        ;""")
+   data_get_corrector_info = {
+       'ModuleID': module_id,
+       'CorrectionTypeID': corrector_type_id
+   }
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   crs.execute(querry_get_corrector_info, data_get_corrector_info)
+   for (CorrectorPin, CorrectorID) in crs:
+       return [CorrectorPin, CorrectorID]
+   crs.close()
+   cnx.close()
+
+
+def get_corrector_pin(module_id, corrector_type_id):
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   querryget_corrector_info = (
+       "SELECT "
+       "    IC.CorrectorPin "
+       "FROM "
+       "    InstalledCorrectors_has_CorrectionModule ICMC "
+       "        INNER JOIN "
+       "    InstalledCorrectors IC ON ICMC.InstalledCorrectors_CorrectorID = IC.CorrectorID "
+       "WHERE "
+       "    ICMC.CorrectionModule_ModuleID = '%(ModuleID)s'"
+       "       AND"
+       "   IC.CorrectionTypes_CorrectionTypeID = '%(CorrectionTypeID)s' "
+       " "
+   )
+   dataget_corrector_info = {
+       'ModuleID': module_id,
+       'CorrectionTypeID': corrector_type_id
+   }
+   crs.execute(querryget_corrector_info, dataget_corrector_info)
+   for (CorrectorPin) in crs:
+       return CorrectorPin
+   crs.close()
+   cnx.close()
+
+
+def check_if_corrector_is_on(corrector_id):
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   querry_check_if_corrector_is_on = (
+       """SELECT
+              EXISTS
+          (
+             SELECT
+                *
+             FROM
+                 CorrectionAction CA
+             WHERE
+                CA.InstalledCorrectors_CorrectorID = '%(CorrectorID)s'
+                   AND
+                CA.TimeStampStart<=NOW()
+                   AND
+                CA.TimeStampEnd IS NULL
+          )
+          AS CorrectorOn """
+   )
+   data_check_if_corrector_is_on = {
+       'CorrectorID': corrector_id
+   }
+   crs.execute(querry_check_if_corrector_is_on, data_check_if_corrector_is_on)
+   for (CorrectorOn) in crs:
+       return int(CorrectorOn[0])
+       # if int(CorrectorOn[0]) == 1:
+       #    return True
+       # else:
+       #    return False
+   crs.close()
+   cnx.close()
+
+
+def turn_correction_off(end_time, corrector_id):
+   # print("turning correction off " + str(corrector_id) + "  " + str(end_time))
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   add_update_correction = ("UPDATE CorrectionAction "
+                            "SET TimeStampEnd = %(end_time)s "
+                            "WHERE InstalledCorrectors_CorrectorID= %(corrector_id)s AND TimeStampEnd IS NULL"
+                            )
+   data_update_correction = {
+       'end_time': end_time,
+       'corrector_id': corrector_id,
+   }
+   crs.execute(add_update_correction, data_update_correction)
+   cnx.commit()
+   crs.close()
+   cnx.close()
+
+
+def turn_correction_on(start_time, corrector_id):
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   add_start_correction_action = ("INSERT INTO SmartGreenhouse_2.CorrectionAction"
+                                  "(TimeStampStart, InstalledCorrectors_CorrectorID)"
+                                  "VALUES(%(TimeStampStart)s, %(InstalledCorrectors_CorrectorID)s)"
+                                  )
+
+   data_start_correction_action = {
+       'TimeStampStart': start_time,
+       'InstalledCorrectors_CorrectorID': corrector_id
+   }
+
+   crs.execute(add_start_correction_action, data_start_correction_action)
+   cnx.commit()
+   crs.close()
+   cnx.close()
+
+
+def get_corrector_id(module_id, corrector_type_id):
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   querry_get_corrector_id = (
+       """
+       SELECT
+           IC.CorrectorID
+       FROM
+           InstalledCorrectors_has_CorrectionModule ICMC
+               INNER JOIN
+           InstalledCorrectors IC ON ICMC.InstalledCorrectors_CorrectorID = IC.CorrectorID
+       WHERE
+           ICMC.CorrectionModule_ModuleID = '%(ModuleID)s'
+              AND
+           IC.CorrectionTypes_CorrectionTypeID = '%(CorrectorTypeID)s'
+       """
+   )
+   data_get_corrector_id = {
+       'ModuleID': module_id,
+       'CorrectorTypeID': corrector_type_id
+   }
+   crs.execute(querry_get_corrector_id, data_get_corrector_id)
+   for (CorrectorID) in crs:
+       return CorrectorID
+   crs.close()
+   cnx.close()
+
+
+def add_ph_correction_data(start_time, corrector_id, ph_equaliser_volume):
+   # add_start_correction_action_data(start_time, corrector_id)
+   cnx = mysql.connector.connect(**config)
+   crs = cnx.cursor()
+
+   add_ph_correction = ("""
+   INSERT INTO SmartGreenhouse_2.PHCorrection
+       (PHEqualiserVolume, CorrectionAction_TimeStampStart,
+       CorrectionAction_InstalledCorrectors_CorrectorID)
+   VALUES(%(PHEqualiserVolume)s, %(CorrectionAction_TimeStampStart)s,
+   %(CorrectionAction_InstalledCorrectors_CorrectorID)s)"
+   """)
+   data_ph_correction = {
+       'PHEqualiserVolume': ph_equaliser_volume,
+       'CorrectionAction_TimeStampStart': start_time,
+       'CorrectionAction_InstalledCorrectors_CorrectorID': corrector_id,
+   }
+
+   crs.execute(add_ph_correction, data_ph_correction)
+   cnx.commit()
+   crs.close()
+   cnx.close()
+
+
