@@ -9,6 +9,7 @@
   <img src="https://github.com/Joseph-Laithwaite/smart-greenhouse-university-fyp/blob/main/Design/System/right-view.jpg?raw=true" width=30%>
 </div>
 <br>
+
 <h3>
   System Overview
 </h3>
@@ -16,9 +17,43 @@
   <img src="https://github.com/Joseph-Laithwaite/smart-greenhouse-university-fyp/blob/main/Design/System/Full%20system%20overview.png?raw=true" width=45%>
   <img src="https://github.com/Joseph-Laithwaite/smart-greenhouse-university-fyp/blob/main/Design/System/Final_Design_bb.png?raw=true" width=45%>
 </div>
-<h3 >
-  Database Design Overview
+
+<h3>
+  Database Design
 </h3>
-<div>
+<p>
+  
+</p>
+<div align="center">
   <img src="https://github.com/Joseph-Laithwaite/smart-greenhouse-university-fyp/blob/main/Design/Database/Full%20ER%20Diagram.png?raw=true" width=100%>
+</div>
+
+<h3>
+  Arduino Design
+</h3>
+<p>
+  
+</p>  
+<div>
+  <img src="https://github.com/Joseph-Laithwaite/smart-greenhouse-university-fyp/blob/main/Design/Arduino/final_arduino_system.png?raw=true" width=100%>
+</div>
+
+<h3>
+  Python Design
+</h3>
+<p>
+  
+</p>
+<div>
+  <img src="https://github.com/Joseph-Laithwaite/smart-greenhouse-university-fyp/blob/main/Design/Python/Python_Class_Diagram.png?raw=true">
+  <br>
+  <a href="https://github.com/Joseph-Laithwaite/smart-greenhouse-university-fyp/blob/main/Design/Python/Python_Class_Diagram.png?raw=true">
+    Python Flow Chart of retrievng and saving all sensor readings
+  </a>
+  <br>
+  <a href="https://github.com/Joseph-Laithwaite/smart-greenhouse-university-fyp/blob/main/Design/Python/Python_Class_Diagram.png?raw=true">
+    Python Flow Chart of carrying out corrections
+  </a>
+  <br>
+
 </div>
