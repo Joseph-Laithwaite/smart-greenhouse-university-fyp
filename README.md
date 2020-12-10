@@ -1,6 +1,12 @@
 # smart-greenhouse-university-fyp
 <p>
-  University Final Year Project in which I designed and built a functioning smart hydroponic greenhouse which can be modularly configured with a range of sensors and correctors including a PH meter, fan, grow lights and solenoid valves. The Sensors and Correctors are controlled by an Arduino nano and a raspberry pi LAMP web-server is used to both control the arduino and serve a php web interface to control and analyse the readings.
+  University Final Year Project in which I designed and built a functioning smart hydroponic greenhouse which can be modularly configured with a range of sensors and correctors
+  including a PH meter, fan, grow lights and solenoid valves. The Sensors and Correctors are controlled by an Arduino nano and a raspberry pi LAMP web-server is used to both
+  control the arduino and serve a php web interface to control and analyse the readings.
+  <br>
+  <a href="  https://github.com/Joseph-Laithwaite/smart-greenhouse-university-fyp/blob/main/Design/WebInterface.pdf">
+    Excert from Thesis showing webinterface screenshots.
+  </a>
 </p>
 <br>
 <div align="center">
